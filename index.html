@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teja Manjusree Koduru – Data Analyst</title>
+<meta name="description" content="Data analyst in Essen, Germany. SQL, Power BI and Python, with five years of software quality assurance behind every analysis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F6; --ink:#13233A; --steel:#55657A; --rule:#D3DAE2; --pass:#1C7F53; --pass-bg:#E2F1E9; --link:#1F4FA3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:17px}
+body{background:var(--paper);color:var(--ink);font-family:"Instrument Sans",system-ui,sans-serif;line-height:1.55;font-feature-settings:"tnum" 1}
+a{color:var(--link);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--link);outline-offset:3px;border-radius:2px}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px}
+header.hero{padding:88px 0 56px}
+.hero h1{font-size:clamp(2.4rem,7vw,4rem);line-height:1.02;font-weight:700;letter-spacing:-.02em}
+.hero .role{font-size:1.25rem;color:var(--steel);margin-top:14px;max-width:34em}
+.run{margin-top:40px;border-left:3px solid var(--pass);padding:4px 0 4px 18px}
+.run p{color:var(--steel);font-size:.95rem;margin-bottom:10px}
+.run ul{list-style:none;display:grid;gap:8px}
+.run li{display:flex;gap:12px;align-items:baseline}
+.ok{flex:none;font-weight:700;font-size:.8rem;color:var(--pass);background:var(--pass-bg);padding:2px 8px;border-radius:4px}
+.run li span:last-child{font-weight:500}
+.actions{display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:36px;font-weight:600}
+.btn{background:var(--ink);color:#fff;text-decoration:none;padding:11px 18px;border-radius:6px}
+.btn:hover{background:#22385A}
+section{padding:52px 0;border-top:1px solid var(--rule)}
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-.01em;margin-bottom:28px}
+.project{padding:26px 0;border-bottom:1px solid var(--rule)}
+.project:last-child{border-bottom:0}
+.project h3{font-size:1.18rem;font-weight:600}
+.project .q{color:var(--steel);margin-top:6px;max-width:40em}
+.metric{display:flex;align-items:baseline;gap:14px;margin-top:16px;flex-wrap:wrap}
+.metric b{font-size:2.4rem;line-height:1;font-weight:700;letter-spacing:-.02em}
+.metric span{max-width:26em}
+.stack{color:var(--steel);font-size:.92rem;margin-top:12px}
+.project a.repo{display:inline-block;margin-top:10px;font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.cols h3{font-size:1.05rem;font-weight:600}
+.cols p{color:var(--steel);font-size:.95rem;margin-top:4px}
+.item{margin-bottom:20px}
+footer{padding:44px 0 64px;border-top:1px solid var(--rule);color:var(--steel);font-size:.95rem}
+footer .actions{margin-top:0}
+@media (max-width:640px){
+  html{font-size:16px}
+  header.hero{padding:56px 0 40px}
+  .cols{grid-template-columns:1fr}
+  .metric b{font-size:2rem}
+}
+@media (prefers-reduced-motion:no-preference){
+  .run li{opacity:0;transform:translateX(-6px);animation:in .35s ease forwards}
+  .run li:nth-child(1){animation-delay:.15s}.run li:nth-child(2){animation-delay:.35s}
+  .run li:nth-child(3){animation-delay:.55s}.run li:nth-child(4){animation-delay:.75s}
+  @keyframes in{to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>Teja Manjusree Koduru</h1>
+  <p class="role">Data analyst in Essen, Germany. I work with SQL, Power BI and Python, and I bring five years of software quality assurance to every analysis: I check the data before I trust the result.</p>
+  <div class="run" aria-label="Checks I run before reporting a result">
+    <p>Checks I run before any result leaves my notebook</p>
+    <ul>
+      <li><span class="ok">PASS</span><span>Duplicates, missing values and "unknown" codes handled</span></li>
+      <li><span class="ok">PASS</span><span>No information from the future leaks into the model</span></li>
+      <li><span class="ok">PASS</span><span>Results confirmed with cross-validation, not one lucky split</span></li>
+      <li><span class="ok">PASS</span><span>Every number translated into a business decision</span></li>
+    </ul>
+  </div>
+  <div class="actions">
+    <a class="btn" href="Teja-Koduru-CV.pdf">Download CV (PDF)</a>
+    <a href="https://www.linkedin.com/in/teja-manjusree-25856b138">LinkedIn</a>
+    <a href="mailto:tejamanjusree424@gmail.com">tejamanjusree424@gmail.com</a>
+  </div>
+</header>
+
+<section id="projects">
+  <h2>Projects</h2>
+
+  <article class="project">
+    <h3>Master's thesis: what makes airline passengers recommend an airline?</h3>
+    <p class="q">Combined 7,555 customer reviews with 570,550 U.S. flight records to model recommendation and compare carriers on delay KPIs.</p>
+    <div class="metric"><b>−20%</b><span>misclassifications after adding sentiment and text features (accuracy 91.6% → 93.3%, ROC AUC 0.98)</span></div>
+    <p class="stack">Python, scikit-learn, XGBoost, NLTK (VADER), TF-IDF, data validation</p>
+    <a class="repo" href="https://github.com/manjusree-prog/airline-customer-satisfaction-analytics">View code and results on GitHub</a>
+  </article>
+
+  <article class="project">
+    <h3>Operations data quality: checking delivery records before reporting KPIs</h3>
+    <p class="q">A reproducible SQL and Python pipeline that validates 1,200 delivery orders, quarantines failing rows with an audit trail, and only then calculates on-time delivery, cancellation and revenue KPIs per hub.</p>
+    <div class="metric"><b>0</b><span>bad rows reach the KPIs: every failed rule is logged with its source line, backed by automated unit tests</span></div>
+    <p class="stack">SQL (SQLite, CTEs, window functions), Python, unit tests, GitHub Actions</p>
+    <a class="repo" href="https://github.com/manjusree-prog/operations-data-quality-analytics">View code and results on GitHub</a>
+  </article>
+
+  <article class="project">
+    <h3>Bank marketing: who should the call centre call first?</h3>
+    <p class="q">A leakage-free model on 41,000+ campaign records that ranks customers by their chance of subscribing to a term deposit.</p>
+    <div class="metric"><b>66%</b><span>of subscribers reached by calling only the top 20% of ranked customers, 3.3× better than random calling</span></div>
+    <p class="stack">Python, scikit-learn, SciPy, hypothesis testing, lift analysis</p>
+    <a class="repo" href="https://github.com/manjusree-prog/bank-marketing-subscription-prediction">View code and results on GitHub</a>
+  </article>
+
+  <article class="project">
+    <h3>Medical insurance: what drives annual medical costs?</h3>
+    <p class="q">Regression models on 100,000 insured people, with 64 engineered features from demographics, lifestyle and clinical data.</p>
+    <div class="metric"><b>R² 0.95</b><span>with Random Forest; healthcare utilisation and chronic conditions are the main cost drivers</span></div>
+    <p class="stack">Python, scikit-learn, XGBoost, feature engineering</p>
+    <a class="repo" href="https://github.com/manjusree-prog/medical-insurance-cost-prediction">View code and results on GitHub</a>
+  </article>
+
+  <article class="project">
+    <h3>Air quality: estimating the Air Quality Index across 26 cities</h3>
+    <p class="q">Cleaned and imputed 29,531 daily records and compared three regression models.</p>
+    <div class="metric"><b>−31%</b><span>prediction error with Random Forest versus a linear baseline (R² 0.91)</span></div>
+    <p class="stack">Python, pandas, scikit-learn, time features</p>
+    <a class="repo" href="https://github.com/manjusree-prog/air-quality-index-forecasting">View code and results on GitHub</a>
+  </article>
+</section>
+
+<section id="background">
+  <h2>Background</h2>
+  <div class="cols">
+    <div>
+      <div class="item"><h3>M.Sc. Big Data &amp; Business Analytics</h3><p>FOM University of Applied Sciences, Essen, 2024–2026. Final grade 1.9.</p></div>
+      <div class="item"><h3>Senior QA Engineer, RMSI</h3><p>2021–2024. Cut repeat defects by 20% through root cause analysis; caught 90% of defects before go-live.</p></div>
+      <div class="item"><h3>Software QA Trainee, Lince Soft Solutions</h3><p>2018–2021. Manual and automated testing; analysed application metrics and logs.</p></div>
+      <div class="item"><h3>Operations Associate, Flink</h3><p>Since 2024, alongside my studies. First-hand view of fulfilment and inventory KPIs in quick commerce.</p></div>
+    </div>
+    <div>
+      <div class="item"><h3>Skills</h3><p>SQL (MySQL), Power BI, Excel, Python (pandas, scikit-learn, XGBoost, NLTK), statistics, machine learning, data validation, Tricentis Tosca, Jira, Agile/Scrum.</p></div>
+      <div class="item"><h3>Certifications</h3><p>Deloitte Australia Data Analytics Job Simulation (2026). FMEA International Basic Requirements and Standard (2025).</p></div>
+      <div class="item"><h3>Languages</h3><p>English C1, German B1 and improving.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p style="margin-bottom:16px">Open to data analyst, BI and data quality roles in North Rhine-Westphalia and remote across Germany.</p>
+  <div class="actions">
+    <a class="btn" href="mailto:tejamanjusree424@gmail.com">Email me</a>
+    <a href="https://www.linkedin.com/in/teja-manjusree-25856b138">LinkedIn</a>
+    <a href="https://github.com/manjusree-prog">GitHub</a>
+  </div>
+</footer>
+</div>
+</body>
+</html>
