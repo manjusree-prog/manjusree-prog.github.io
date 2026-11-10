@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Olist Delivery Performance Dashboard</title>
+<meta name="description" content="Delivery performance, customer satisfaction and data quality for 96,000 Olist e-commerce orders (2017-2018).">
+<style>
+:root{--bg:#F5F7FA;--card:#FFFFFF;--ink:#1B2430;--muted:#5C6675;--line:#E3E7ED;--blue:#1F5FA8;--blue-soft:#D6E2F0;--red:#C8423B;--amber:#E3A33B;--grey:#8A8F98;--green:#2E8B57}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161D;--card:#1A212B;--ink:#E7ECF2;--muted:#9AA4B2;--line:#2A3340;--blue:#5B9BE0;--blue-soft:#2A3D55;--red:#E06A62;--amber:#E8B55A;--grey:#7D8794;--green:#4FB37E}}
+:root[data-theme="dark"]{--bg:#11161D;--card:#1A212B;--ink:#E7ECF2;--muted:#9AA4B2;--line:#2A3340;--blue:#5B9BE0;--blue-soft:#2A3D55;--red:#E06A62;--amber:#E8B55A;--grey:#7D8794;--green:#4FB37E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 48px}
+header h1{font-size:1.6rem;margin:0 0 4px}
+header p{margin:0;color:var(--muted)}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border:1px solid var(--line);border-radius:99px;color:var(--muted);margin-right:6px;margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:22px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .v{font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:.82rem}
+.kpi.alert .v{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.card h2{font-size:1rem;margin:0 0 2px}
+.card .sub{color:var(--muted);font-size:.85rem;margin:0 0 10px}
+.wide{grid-column:1/-1}
+.chart{position:relative;height:280px}
+.chart.tall{height:400px}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.controls button{font:inherit;font-size:.82rem;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.controls button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+.bad{color:var(--red);font-weight:600}
+.flow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+.flow div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.85rem}
+.flow b{display:block;font-size:1.1rem}
+.flow span{color:var(--muted)}
+ol.recs{margin:0;padding-left:20px}
+ol.recs li{margin:6px 0}
+.svgbox{position:absolute;inset:0}
+.svgbox svg{width:100%;height:100%;display:block;overflow:visible}
+.svgbox text{fill:var(--muted);font-size:11px}
+.svgbox .lbl{fill:var(--ink);font-size:11px;font-weight:600}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);font-size:.8rem;padding:6px 9px;border-radius:6px;max-width:260px;opacity:0;transition:opacity .1s;z-index:9;line-height:1.4}
+footer{color:var(--muted);font-size:.8rem;margin-top:24px}
+footer a{color:var(--blue)}
+@media (max-width:820px){.grid{grid-template-columns:1fr}.chart.tall{height:460px}}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="wrap">
+<header>
+  <h1>Late Deliveries Cost Olist Its Best Reviews</h1>
+  <p>Delivery performance, customer satisfaction and data quality for Olist, a Brazilian e-commerce marketplace. Delivered orders, Jan 2017 to Aug 2018.</p>
+  <span class="tag">SQL (SQLite)</span><span class="tag">Python</span><span class="tag">Data quality checks</span><span class="tag">Teja Manjusree Koduru</span>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<section class="grid">
+  <div class="card wide">
+    <h2>Monthly volume and delivery performance</h2>
+    <p class="sub">Late rate jumped in Nov 2017 (Black Friday) and again in Feb-Mar 2018, while order volume stayed flat.</p>
+    <div class="controls" id="trendCtl">
+      <button data-k="late_rate_pct" class="on">Late rate %</button>
+      <button data-k="avg_delivery_days">Avg delivery days</button>
+      <button data-k="avg_review">Avg review</button>
+    </div>
+    <div class="chart"><div id="trend" class="svgbox"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Reviews collapse once an order is late</h2>
+    <p class="sub">Share of 1-2 star reviews by delivery date vs. the promised date.</p>
+    <div class="chart"><div id="reviews" class="svgbox"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Where late orders lose time</h2>
+    <p class="sub">Average days per stage. Carrier transit is 3.5x longer for late orders.</p>
+    <div class="chart"><div id="stages" class="svgbox"></div></div>
+  </div>
+
+  <div class="card wide">
+    <h2>Late rate by customer state</h2>
+    <p class="sub">States with 500+ orders. Northeast states and Rio de Janeiro are the problem lanes; RJ matters most because of its volume.</p>
+    <div class="controls" id="stateCtl">
+      <button data-k="late_rate_pct" class="on">Sort by late rate</button>
+      <button data-k="late_orders">Sort by late orders</button>
+      <button data-k="orders">Sort by orders</button>
+    </div>
+    <div class="chart tall"><div id="states" class="svgbox"></div></div>
+  </div>
+
+  <div class="card wide">
+    <h2>Top 15 categories by revenue</h2>
+    <p class="sub">Click a column to sort. Office furniture has the slowest delivery and the lowest rating.</p>
+    <div class="tablewrap"><table id="cats"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Data quality pipeline</h2>
+    <p class="sub">Every delivered order is checked before analysis. Failing rows are quarantined with a reason, not deleted.</p>
+    <div class="flow" id="flow"></div>
+    <div class="tablewrap"><table id="dq"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>What I would do</h2>
+    <p class="sub">Recommendations based on the findings.</p>
+    <ol class="recs" id="recs"></ol>
+  </div>
+</section>
+
+<footer>
+  Data: <a href="https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce">Brazilian E-Commerce Public Dataset by Olist</a> (CC BY-NC-SA 4.0).
+  Code and SQL: <a href="https://github.com/manjusree-prog/manjusree-prog.github.io/tree/main/olist-delivery-analytics">github.com/manjusree-prog/olist-delivery-analytics</a>.
+  Orders still in transit at the data cut-off are not included, so late rates in the last months are slightly understated.
+</footer>
+</div>
+
+<script>
+const D = {"kpi": {"delivered_orders": 96004.0, "customers": 92904.0, "revenue_brl": 15342734.0, "avg_order_value": 159.81, "avg_delivery_days": 12.5, "avg_promised_days": 23.6, "late_rate_pct": 6.8, "avg_review": 4.14, "negative_review_pct": 13.1}, "summary": {"late_orders": 6528, "late_rate_pct": 6.8, "avg_review_late": 2.25, "avg_review_ontime": 4.28, "negative_review_pct_late": 62.9, "negative_review_pct_ontime": 9.5, "mann_whitney_p": 0.0, "extra_negative_reviews_from_lateness": 3484, "repeat_pct_ontime": 3.04, "repeat_pct_late": 2.52, "repeat_z": 2.34, "repeat_p": 0.0191, "top10pct_sellers_share_of_late_orders": 73.8, "top10pct_sellers_share_of_orders": 63.3, "pct_sellers_with_any_late_order": 43.3, "watchlist_sellers": 37, "watchlist_pct_of_sellers": 1.3, "watchlist_share_of_late_orders": 7.9, "watchlist_share_of_orders": 2.8, "watchlist_late_rate": 18.7}, "monthly": {"purchase_month": ["2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08"], "orders": [747, 1639, 2545, 2303, 3544, 3134, 3861, 4191, 4149, 4478, 7288, 5513, 7069, 6555, 7003, 6791, 6719, 6050, 6119, 6306], "revenue_brl": [127161.0, 268944.0, 414217.0, 390812.0, 566337.0, 489871.0, 564236.0, 645294.0, 700884.0, 751117.0, 1153229.0, 843078.0, 1077887.0, 966168.0, 1120598.0, 1131699.0, 1125073.0, 1004593.0, 1022518.0, 979016.0], "late_orders": [22, 49, 116, 151, 106, 95, 108, 122, 181, 187, 904, 411, 403, 926, 1328, 306, 443, 70, 207, 393], "late_rate_pct": [2.9, 3.0, 4.6, 6.6, 3.0, 3.0, 2.8, 2.9, 4.4, 4.2, 12.4, 7.5, 5.7, 14.1, 19.0, 4.5, 6.6, 1.2, 3.4, 6.2], "late_rate_3m_pct": [2.9, 3.0, 3.8, 4.9, 4.4, 3.9, 2.9, 2.9, 3.4, 3.8, 8.0, 8.7, 8.6, 9.1, 12.9, 12.6, 10.1, 4.2, 3.8, 3.6], "avg_delivery_days": [12.6, 13.2, 13.0, 14.9, 11.3, 12.0, 11.6, 11.2, 11.8, 11.9, 15.2, 15.4, 14.1, 16.9, 16.3, 11.5, 11.4, 9.2, 9.0, 7.7], "avg_review": [4.19, 4.19, 4.17, 4.13, 4.22, 4.21, 4.25, 4.3, 4.25, 4.19, 3.98, 4.07, 4.09, 3.86, 3.8, 4.19, 4.23, 4.3, 4.3, 4.3]}, "reviews": {"labels": ["8+ days early", "1-7 days early", "on the promised day", "1-3 days late", "4-7 days late", "8+ days late"], "orders": [70878, 17308, 1290, 1868, 1800, 2860], "avg_review": [4.31, 4.19, 4.01, 3.28, 2.09, 1.69], "negative_review_pct": [9.2, 10.5, 12.9, 32.4, 68.1, 79.5], "five_star_pct": [63.4, 57.2, 50.2, 33.1, 13.7, 6.9]}, "stages": {"outcome": ["on time / early", "late"], "orders": [89476, 6528], "approval_days": [0.4, 0.5], "seller_handling_days": [2.6, 5.5], "carrier_transit_days": [8.0, 27.9], "total_delivery_days": [11.0, 33.9], "promised_days": [23.7, 22.6]}, "states": {"late_rank": [1, 2, 3, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], "customer_state": ["MA", "CE", "BA", "RJ", "PA", "ES", "PB", "MS", "PE", "SC", "GO", "RS", "MT", "DF", "MG", "SP", "PR"], "orders": [709, 1271, 3249, 12289, 941, 1986, 516, 699, 1586, 3525, 1944, 5308, 882, 2071, 11290, 40329, 4892], "late_rate_pct": [17.6, 13.8, 12.2, 12.2, 11.3, 10.8, 10.5, 9.7, 9.6, 8.3, 6.6, 6.1, 6.0, 5.7, 4.6, 4.5, 4.1], "avg_delivery_days": [21.6, 21.2, 19.3, 15.3, 23.8, 15.8, 20.4, 15.6, 18.5, 15.0, 15.6, 15.3, 18.1, 12.9, 12.0, 8.7, 12.0], "avg_promised_days": [30.3, 31.2, 29.4, 26.3, 37.0, 25.5, 33.0, 26.0, 30.9, 25.7, 27.0, 28.4, 31.7, 24.2, 24.5, 19.1, 24.5], "avg_review": [3.82, 3.93, 3.91, 3.95, 3.89, 4.04, 4.06, 4.16, 4.07, 4.12, 4.09, 4.18, 4.13, 4.13, 4.18, 4.23, 4.23], "late_orders": [125, 175, 396, 1499, 106, 214, 54, 68, 152, 293, 128, 324, 53, 118, 519, 1815, 201]}, "categories": {"category": ["health_beauty", "watches_gifts", "bed_bath_table", "sports_leisure", "computers_accessories", "furniture_decor", "housewares", "cool_stuff", "auto", "garden_tools", "toys", "baby", "perfumery", "telephony", "office_furniture"], "orders": [8592, 5478, 9244, 7498, 6505, 6238, 5722, 3545, 3784, 3434, 3774, 2796, 3060, 4080, 1247], "revenue_brl": [1405703.0, 1258845.0, 1222082.0, 1113421.0, 1030508.0, 870234.0, 755147.0, 689760.0, 666308.0, 564366.0, 541669.0, 464905.0, 437856.0, 378527.0, 333379.0], "late_rate_pct": [7.6, 7.2, 7.1, 6.3, 6.5, 7.1, 5.0, 5.9, 7.1, 6.6, 6.4, 7.7, 6.6, 7.0, 8.0], "avg_delivery_days": [11.9, 12.7, 12.8, 12.2, 13.2, 12.9, 10.9, 12.4, 12.2, 13.7, 11.7, 12.5, 11.7, 12.9, 20.8], "avg_review": [4.18, 4.05, 3.9, 4.15, 3.98, 3.94, 4.1, 4.18, 4.09, 4.07, 4.19, 4.06, 4.22, 3.99, 3.51]}, "sellers": {"pct_of_sellers": [0.03, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05, 1.22, 1.39, 1.56, 1.73, 1.9, 2.07, 2.24, 2.41, 2.59, 2.76, 2.93, 3.1, 3.27, 3.44, 3.61, 3.78, 3.95, 4.12, 4.29, 4.46, 4.63, 4.8, 4.97, 5.14, 5.31, 5.48, 5.65, 5.82, 5.99, 6.16, 6.33, 6.5, 6.67, 6.84, 7.01, 7.18, 7.35, 7.52, 7.69, 7.86, 8.03, 8.2, 8.37, 8.54, 8.71, 8.88, 9.05, 9.22, 9.39, 9.56, 9.73, 9.9, 10.07, 10.24, 10.41, 10.58, 10.75, 10.92, 11.09, 11.26, 11.43, 11.6, 11.77, 11.94, 12.11, 12.28, 12.45, 12.62, 12.79, 12.96, 13.13, 13.3, 13.47, 13.64, 13.81, 13.98, 14.15, 14.32, 14.49, 14.66, 14.83, 15.0, 15.17, 15.34, 15.51, 15.68, 15.85, 16.02, 16.19, 16.36, 16.53, 16.7, 16.87, 17.04, 17.21, 17.38, 17.55, 17.72, 17.89, 18.06, 18.23, 18.4, 18.57, 18.74, 18.91, 19.08, 19.25, 19.42, 19.59, 19.76, 19.93, 20.1, 20.27, 20.44, 20.61, 20.78, 20.95, 21.12, 21.29, 21.46, 21.63, 21.8, 21.97, 22.14, 22.31, 22.48, 22.65, 22.82, 22.99, 23.16, 23.33, 23.5, 23.67, 23.84, 24.01, 24.18, 24.35, 24.52, 24.69, 24.86, 25.03, 25.2, 25.37, 25.54, 25.71, 25.88, 26.05, 26.22, 26.39, 26.56, 26.73, 26.9, 27.07, 27.24, 27.41, 27.59, 27.76, 27.93, 28.1, 28.27, 28.44, 28.61, 28.78, 28.95, 29.12, 29.29, 29.46, 29.63, 29.8, 29.97, 30.14, 30.31, 30.48, 30.65, 30.82, 30.99, 31.16, 31.33, 31.5, 31.67, 31.84, 32.01, 32.18, 32.35, 32.52, 32.69, 32.86, 33.03, 33.2, 33.37, 33.54, 33.71, 33.88, 34.05, 34.22, 34.39, 34.56, 34.73, 34.9, 35.07, 35.24, 35.41, 35.58, 35.75, 35.92, 36.09, 36.26, 36.43, 36.6, 36.77, 36.94, 37.11, 37.28, 37.45, 37.62, 37.79, 37.96, 38.13, 38.3, 38.47, 38.64, 38.81, 38.98, 39.15, 39.32, 39.49, 39.66, 39.83, 40.0, 40.17, 40.34, 40.51, 40.68, 40.85, 41.02, 41.19, 41.36, 41.53, 41.7, 41.87, 42.04, 42.21, 42.38, 42.55, 42.72, 42.89, 43.06, 43.23, 43.4, 43.57, 43.74, 43.91, 44.08, 44.25, 44.42, 44.59, 44.76, 44.93, 45.1, 45.27, 45.44, 45.61, 45.78, 45.95, 46.12, 46.29, 46.46, 46.63, 46.8, 46.97, 47.14, 47.31, 47.48, 47.65, 47.82, 47.99, 48.16, 48.33, 48.5, 48.67, 48.84, 49.01, 49.18, 49.35, 49.52, 49.69, 49.86, 50.03, 50.2, 50.37, 50.54, 50.71, 50.88, 51.05, 51.22, 51.39, 51.56, 51.73, 51.9, 52.07, 52.24, 52.41, 52.59, 52.76, 52.93, 53.1, 53.27, 53.44, 53.61, 53.78, 53.95, 54.12, 54.29, 54.46, 54.63, 54.8, 54.97, 55.14, 55.31, 55.48, 55.65, 55.82, 55.99, 56.16, 56.33, 56.5, 56.67, 56.84, 57.01, 57.18, 57.35, 57.52, 57.69, 57.86, 58.03, 58.2, 58.37, 58.54, 58.71, 58.88, 59.05, 59.22, 59.39, 59.56, 59.73, 59.9], "cum_pct_of_late_orders": [2.6, 10.6, 16.8, 21.7, 25.3, 28.1, 30.5, 32.8, 34.9, 36.8, 38.4, 40.0, 41.4, 42.8, 44.0, 45.3, 46.4, 47.5, 48.6, 49.7, 50.7, 51.7, 52.6, 53.5, 54.4, 55.3, 56.1, 56.9, 57.7, 58.5, 59.2, 59.9, 60.6, 61.3, 61.9, 62.6, 63.2, 63.8, 64.4, 64.9, 65.5, 66.0, 66.5, 67.1, 67.6, 68.0, 68.5, 68.9, 69.4, 69.9, 70.3, 70.8, 71.2, 71.6, 72.0, 72.4, 72.8, 73.1, 73.5, 73.9, 74.3, 74.7, 75.0, 75.3, 75.6, 75.9, 76.2, 76.5, 76.8, 77.1, 77.4, 77.7, 78.0, 78.3, 78.6, 78.9, 79.2, 79.5, 79.7, 80.0, 80.2, 80.4, 80.7, 80.9, 81.1, 81.3, 81.6, 81.8, 82.0, 82.3, 82.5, 82.7, 83.0, 83.2, 83.4, 83.6, 83.9, 84.1, 84.3, 84.6, 84.7, 84.9, 85.0, 85.2, 85.4, 85.5, 85.7, 85.8, 86.0, 86.1, 86.3, 86.4, 86.6, 86.7, 86.9, 87.0, 87.2, 87.3, 87.5, 87.6, 87.8, 88.0, 88.1, 88.3, 88.4, 88.6, 88.7, 88.9, 89.0, 89.2, 89.3, 89.5, 89.6, 89.8, 89.9, 90.1, 90.2, 90.4, 90.6, 90.7, 90.9, 91.0, 91.2, 91.3, 91.5, 91.6, 91.7, 91.8, 91.9, 92.0, 92.0, 92.1, 92.2, 92.3, 92.3, 92.4, 92.5, 92.6, 92.6, 92.7, 92.8, 92.9, 93.0, 93.0, 93.1, 93.2, 93.3, 93.3, 93.4, 93.5, 93.6, 93.6, 93.7, 93.8, 93.9, 93.9, 94.0, 94.1, 94.2, 94.3, 94.3, 94.4, 94.5, 94.6, 94.6, 94.7, 94.8, 94.9, 94.9, 95.0, 95.1, 95.2, 95.2, 95.3, 95.4, 95.5, 95.6, 95.6, 95.7, 95.8, 95.9, 95.9, 96.0, 96.1, 96.2, 96.2, 96.3, 96.4, 96.5, 96.5, 96.6, 96.7, 96.8, 96.9, 96.9, 97.0, 97.1, 97.2, 97.2, 97.3, 97.4, 97.5, 97.5, 97.6, 97.7, 97.8, 97.8, 97.9, 98.0, 98.1, 98.2, 98.2, 98.3, 98.4, 98.5, 98.5, 98.6, 98.7, 98.8, 98.8, 98.9, 99.0, 99.1, 99.1, 99.2, 99.3, 99.4, 99.4, 99.5, 99.6, 99.7, 99.8, 99.8, 99.9, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]}, "dq": {"check_name": ["orders: duplicate order_id", "order_items: item without matching order", "order_items: price <= 0", "orders: payment total differs from items + freight by > 1 BRL", "order_reviews: orders with more than one review", "products: missing category", "delivered orders: delivered status but no delivery date", "delivered orders: delivered to customer before carrier handover", "delivered orders: handed to carrier before purchase", "delivered orders: missing approval timestamp", "delivered orders: missing carrier handover timestamp"], "failing_rows": [0, 0, 0, 249, 555, 610, 8, 23, 165, 14, 1]}, "pipeline": {"all_orders": 99441, "delivered_orders": 96478, "quarantined": 211, "clean_delivered_orders": 96267}};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d = 0) => Number(v).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const C = () => ({blue: css('--blue'), soft: css('--blue-soft'), red: css('--red'), amber: css('--amber'),
+                  grey: css('--grey'), ink: css('--ink'), muted: css('--muted'), line: css('--line')});
+
+function kpis() {
+  const k = D.kpi, s = D.summary;
+  const items = [
+    [fmt(k.delivered_orders), 'Delivered orders'],
+    ['R$ ' + fmt(k.revenue_brl / 1e6, 1) + 'M', 'Revenue (items + freight)'],
+    [fmt(k.avg_delivery_days, 1) + ' days', 'Avg delivery time (promised ' + fmt(k.avg_promised_days, 0) + ')'],
+    [fmt(k.late_rate_pct, 1) + '%', 'Delivered after promised date', true],
+    [fmt(k.avg_review, 2) + ' / 5', 'Avg review score'],
+    [fmt(s.negative_review_pct_late, 0) + '% vs ' + fmt(s.negative_review_pct_ontime, 0) + '%', '1-2 star reviews: late vs on time', true],
+  ];
+  document.getElementById('kpis').innerHTML = items.map(([v, l, a]) =>
+    `<div class="kpi${a ? ' alert' : ''}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+}
+
+
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = 1;
+  const x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8); tip.style.left = x + 'px'; tip.style.top = (e.clientY + 12) + 'px'; }
+function hideTip() { tip.style.opacity = 0; }
+function el(tag, attrs, parent, text) { const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]); if (text !== undefined) n.textContent = text; if (parent) parent.appendChild(n); return n; }
+function hover(node, html) { node.style.cursor = 'pointer';
+  node.addEventListener('mousemove', e => showTip(e, html)); node.addEventListener('mouseleave', hideTip);
+  node.addEventListener('touchstart', e => showTip(e.touches[0], html), {passive: true}); }
+function svgFor(id) { const box = document.getElementById(id); box.innerHTML = '';
+  const w = box.clientWidth, h = box.clientHeight; const svg = el('svg', {viewBox: `0 0 ${w} ${h}`}, box); return [svg, w, h]; }
+function nice(max) { const p = Math.pow(10, Math.floor(Math.log10(max))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= max) return m * p; return 10 * p; }
+function legend(id, items) { const box = document.getElementById(id).parentElement;
+  let lg = box.previousElementSibling; if (!lg || !lg.classList.contains('legend')) { lg = document.createElement('div'); lg.className = 'legend'; box.before(lg); }
+  lg.innerHTML = items.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join(''); }
+
+let trendKey = 'late_rate_pct', stateKey = 'late_rate_pct';
+const trendLabel = {late_rate_pct: 'Late rate %', avg_delivery_days: 'Avg delivery days', avg_review: 'Avg review'};
+
+function drawTrend(c) {
+  const m = D.monthly, [svg, w, h] = svgFor('trend'), L = 46, R = 46, T = 10, B = 34;
+  const n = m.purchase_month.length, bw = (w - L - R) / n, ymax = nice(Math.max(...m.orders));
+  const vals = m[trendKey], lo = trendKey === 'avg_review' ? 3.5 : 0, hi = trendKey === 'avg_review' ? 4.5 : nice(Math.max(...vals));
+  const y = v => T + (h - T - B) * (1 - v / ymax), y2 = v => T + (h - T - B) * (1 - (v - lo) / (hi - lo));
+  for (let i = 0; i <= 4; i++) { const v = ymax * i / 4, yy = y(v);
+    el('line', {x1: L, x2: w - R, y1: yy, y2: yy, stroke: c.line}, svg);
+    el('text', {x: L - 6, y: yy + 4, 'text-anchor': 'end'}, svg, fmt(v));
+    el('text', {x: w - R + 6, y: y2(lo + (hi - lo) * i / 4) + 4}, svg, fmt(lo + (hi - lo) * i / 4, trendKey === 'avg_review' ? 2 : 0)); }
+  m.purchase_month.forEach((mo, i) => {
+    const x = L + i * bw, r = el('rect', {x: x + bw * .15, y: y(m.orders[i]), width: bw * .7, height: h - B - y(m.orders[i]), fill: c.soft, rx: 2}, svg);
+    hover(r, `<b>${mo}</b><br>Orders: ${fmt(m.orders[i])}<br>Revenue: R$ ${fmt(m.revenue_brl[i])}<br>Late rate: ${m.late_rate_pct[i]}%<br>Avg delivery: ${m.avg_delivery_days[i]} days<br>Avg review: ${m.avg_review[i]}`);
+    const step = w > 700 ? 1 : w > 480 ? 2 : 3;
+    if (i % step === 0) el('text', {x: x + bw / 2, y: h - B + 16, 'text-anchor': 'middle'}, svg, mo.slice(2)); });
+  const pts = vals.map((v, i) => [L + i * bw + bw / 2, y2(v)]);
+  el('polyline', {points: pts.map(p => p.join(',')).join(' '), fill: 'none', stroke: c.red, 'stroke-width': 2.2}, svg);
+  pts.forEach(([px, py], i) => hover(el('circle', {cx: px, cy: py, r: 4, fill: c.red}, svg),
+    `<b>${m.purchase_month[i]}</b><br>${trendLabel[trendKey]}: ${vals[i]}`));
+  legend('trend', [[c.soft, 'Delivered orders (left axis)'], [c.red, trendLabel[trendKey] + ' (right axis)']]);
+}
+
+function drawBars(id, labels, values, colors, tips, opt = {}) {
+  const [svg, w, h] = svgFor(id), c = C();
+  if (opt.horizontal) {
+    const L = opt.left || 60, R = 50, T = 4, B = 22, n = labels.length, bh = (h - T - B) / n;
+    const xmax = opt.max || nice(Math.max(...values)), x = v => L + (w - L - R) * v / xmax;
+    for (let i = 0; i <= 4; i++) { const v = xmax * i / 4; el('line', {x1: x(v), x2: x(v), y1: T, y2: h - B, stroke: c.line}, svg);
+      el('text', {x: x(v), y: h - 6, 'text-anchor': 'middle'}, svg, fmt(v)); }
+    labels.forEach((lb, i) => { const yy = T + i * bh;
+      el('text', {x: L - 6, y: yy + bh / 2 + 4, 'text-anchor': 'end', class: 'lbl'}, svg, lb);
+      hover(el('rect', {x: L, y: yy + bh * .15, width: Math.max(1, x(values[i]) - L), height: bh * .7, fill: colors[i], rx: 2}, svg), tips[i]);
+      el('text', {x: x(values[i]) + 4, y: yy + bh / 2 + 4}, svg, opt.suffix ? values[i] + opt.suffix : fmt(values[i])); });
+  } else {
+    const L = 34, R = 4, T = 18, B = 44, n = labels.length, bw = (w - L - R) / n;
+    const ymax = opt.max || nice(Math.max(...values)), y = v => T + (h - T - B) * (1 - v / ymax);
+    for (let i = 0; i <= 4; i++) { const v = ymax * i / 4; el('line', {x1: L, x2: w - R, y1: y(v), y2: y(v), stroke: c.line}, svg);
+      el('text', {x: L - 6, y: y(v) + 4, 'text-anchor': 'end'}, svg, fmt(v)); }
+    labels.forEach((lb, i) => { const x = L + i * bw;
+      hover(el('rect', {x: x + bw * .18, y: y(values[i]), width: bw * .64, height: h - B - y(values[i]), fill: colors[i], rx: 2}, svg), tips[i]);
+      el('text', {x: x + bw / 2, y: y(values[i]) - 5, 'text-anchor': 'middle', class: 'lbl'}, svg, values[i] + (opt.suffix || ''));
+      const words = lb.split(' '), k = bw < 70 ? 3 : 2, per = Math.ceil(words.length / k), lines = [];
+      for (let j = 0; j < words.length; j += per) lines.push(words.slice(j, j + per).join(' '));
+      lines.forEach((t, j) => el('text', {x: x + bw / 2, y: h - B + 13 + j * 11, 'text-anchor': 'middle', style: bw < 70 ? 'font-size:9.5px' : ''}, svg, t)); });
+  }
+}
+
+function drawStages(c) {
+  const st = D.stages, [svg, w, h] = svgFor('stages'), L = 104, R = 16, T = 8, B = 34;
+  const rows = [['On time / early', st.outcome.indexOf('on time / early')], ['Late', st.outcome.indexOf('late')]];
+  const parts = [['approval_days', c.grey, 'Approval'], ['seller_handling_days', c.amber, 'Seller handling'], ['carrier_transit_days', c.blue, 'Carrier transit']];
+  const xmax = Math.ceil(Math.max(...rows.map(([, i]) => st.total_delivery_days[i]), st.promised_days[0]) / 10) * 10, x = v => L + (w - L - R) * v / xmax;
+  for (let i = 0; i <= 4; i++) { const v = xmax * i / 4; el('line', {x1: x(v), x2: x(v), y1: T, y2: h - B, stroke: c.line}, svg);
+    el('text', {x: x(v), y: h - B + 14, 'text-anchor': 'middle'}, svg, fmt(v)); }
+  el('text', {x: (L + w - R) / 2, y: h - 4, 'text-anchor': 'middle'}, svg, 'Average days');
+  const bh = (h - T - B) / 2;
+  rows.forEach(([lb, i], r) => { let acc = 0; const yy = T + r * bh;
+    el('text', {x: L - 8, y: yy + bh / 2 + 4, 'text-anchor': 'end', class: 'lbl'}, svg, lb);
+    parts.forEach(([k, col, name]) => { const v = st[k][i];
+      hover(el('rect', {x: x(acc), y: yy + bh * .2, width: x(acc + v) - x(acc), height: bh * .6, fill: col}, svg),
+        `<b>${lb}</b><br>${name}: ${v} days<br>Total: ${st.total_delivery_days[i]} days<br>Promised: ${st.promised_days[i]} days`);
+      if (x(acc + v) - x(acc) > 30) el('text', {x: (x(acc) + x(acc + v)) / 2, y: yy + bh / 2 + 4, 'text-anchor': 'middle', style: 'fill:#fff;font-weight:700'}, svg, v);
+      acc += v; }); });
+  const pm = (st.promised_days[0] + st.promised_days[1]) / 2;
+  el('line', {x1: x(pm), x2: x(pm), y1: T, y2: h - B, stroke: c.red, 'stroke-dasharray': '5 4', 'stroke-width': 1.6}, svg);
+  el('text', {x: x(pm) + 4, y: T + 10, style: `fill:${c.red}`}, svg, `promised ≈ ${Math.round(pm)} days`);
+  legend('stages', parts.map(([, col, n]) => [col, n]));
+}
+
+function draw() {
+  const c = C();
+  drawTrend(c);
+  const r = D.reviews;
+  drawBars('reviews', r.labels, r.negative_review_pct, r.labels.map((_, i) => i < 3 ? c.blue : c.red),
+    r.labels.map((lb, i) => `<b>${lb}</b><br>1-2 star reviews: ${r.negative_review_pct[i]}%<br>5-star: ${r.five_star_pct[i]}%<br>Avg review: ${r.avg_review[i]}<br>Orders: ${fmt(r.orders[i])}`),
+    {max: 100, suffix: '%'});
+  drawStages(c);
+  const s = D.states, idx = s.customer_state.map((_, i) => i).sort((a, b) => s[stateKey][b] - s[stateKey][a]);
+  drawBars('states', idx.map(i => s.customer_state[i]), idx.map(i => s[stateKey][i]),
+    idx.map(i => s.late_rate_pct[i] >= 10 ? c.red : c.blue),
+    idx.map(i => `<b>${s.customer_state[i]}</b><br>Late rate: ${s.late_rate_pct[i]}%<br>Late orders: ${fmt(s.late_orders[i])}<br>Orders: ${fmt(s.orders[i])}<br>Avg delivery: ${s.avg_delivery_days[i]} days (promised ${s.avg_promised_days[i]})<br>Avg review: ${s.avg_review[i]}`),
+    {horizontal: true, left: 40, suffix: stateKey === 'late_rate_pct' ? '%' : ''});
+  legend('states', [[c.red, 'Late rate 10% or higher'], [c.blue, 'Below 10%']]);
+}
+
+function table(id, cols, rows, sortable) {
+  const el = document.getElementById(id);
+  let key = null, dir = -1;
+  const render = () => {
+    const rs = key === null ? rows : [...rows].sort((a, b) => (a[key] > b[key] ? 1 : -1) * dir);
+    el.innerHTML = '<thead><tr>' + cols.map((c, i) => `<th data-i="${i}">${c[0]}</th>`).join('') + '</tr></thead><tbody>' +
+      rs.map(r => '<tr>' + cols.map((c, i) => `<td${c[2] && c[2](r[i]) ? ' class="bad"' : ''}>${c[1] ? c[1](r[i]) : r[i]}</td>`).join('') + '</tr>').join('') + '</tbody>';
+    if (sortable) el.querySelectorAll('th').forEach(th => th.onclick = () => {
+      const i = +th.dataset.i; dir = key === i ? -dir : -1; key = i; render(); });
+  };
+  render();
+}
+
+function static_() {
+  const k = D.categories;
+  table('cats', [['Category'], ['Orders', v => fmt(v)], ['Revenue (R$)', v => fmt(v)],
+    ['Late %', v => v.toFixed(1), v => v >= 7.5], ['Avg delivery days', v => v.toFixed(1), v => v >= 15],
+    ['Avg review', v => v.toFixed(2), v => v < 3.9]],
+    k.category.map((c, i) => [c.replace(/_/g, ' '), k.orders[i], k.revenue_brl[i], k.late_rate_pct[i], k.avg_delivery_days[i], k.avg_review[i]]), true);
+
+  const p = D.pipeline;
+  document.getElementById('flow').innerHTML =
+    `<div><b>${fmt(p.all_orders)}</b><span>all orders</span></div>→` +
+    `<div><b>${fmt(p.delivered_orders)}</b><span>delivered</span></div>→` +
+    `<div><b>${fmt(p.quarantined)}</b><span>quarantined</span></div>→` +
+    `<div><b>${fmt(p.clean_delivered_orders)}</b><span>clean for analysis</span></div>`;
+  const dq = D.dq;
+  table('dq', [['Check'], ['Failing rows', v => fmt(v), v => v > 0]],
+    dq.check_name.map((c, i) => [c, dq.failing_rows[i]]), false);
+
+  const s = D.summary;
+  document.getElementById('recs').innerHTML = [
+    `<b>Fix the carrier lanes, not just the sellers.</b> Late orders spend ${pick2('carrier_transit_days')} days in transit vs ${pick2('carrier_transit_days', 0)} for on-time ones. Review carrier performance for RJ and the Northeast first.`,
+    `<b>Set promised dates per state.</b> A single generous promise (about 24 days) still fails in MA, CE and BA. Use each lane's real delivery-time distribution instead.`,
+    `<b>Plan peak capacity.</b> The late rate tripled in Nov 2017 and reached 19% in Mar 2018. Add carrier capacity before Black Friday and monitor the 3-month rolling late rate weekly.`,
+    `<b>Seller watch-list.</b> ${s.watchlist_sellers} sellers (${s.watchlist_pct_of_sellers}% of sellers) run at a ${s.watchlist_late_rate}% late rate, about 3x the average. Flag handling time above 5 days.`,
+    `<b>Proactive customer contact.</b> 1-2 star reviews jump from ${s.negative_review_pct_ontime}% to ${s.negative_review_pct_late}% when an order is late. A delay message and voucher could protect ratings.`,
+  ].map(x => `<li>${x}</li>`).join('');
+}
+function pick2(k, late = 1) { const st = D.stages; const i = st.outcome.indexOf(late ? 'late' : 'on time / early'); return st[k][i]; }
+
+function controls(id, set) {
+  document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+    document.querySelectorAll(`#${id} button`).forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); set(b.dataset.k); draw(); });
+}
+
+kpis(); static_(); draw();
+controls('trendCtl', k => trendKey = k);
+controls('stateCtl', k => stateKey = k);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
+</script>
+</body>
+</html>

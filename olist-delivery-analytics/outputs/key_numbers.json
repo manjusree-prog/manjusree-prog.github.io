@@ -1,0 +1,22 @@
+{
+  "late_orders": 6528,
+  "late_rate_pct": 6.8,
+  "avg_review_late": 2.25,
+  "avg_review_ontime": 4.28,
+  "negative_review_pct_late": 62.9,
+  "negative_review_pct_ontime": 9.5,
+  "mann_whitney_p": 0.0,
+  "extra_negative_reviews_from_lateness": 3484,
+  "repeat_pct_ontime": 3.04,
+  "repeat_pct_late": 2.52,
+  "repeat_z": 2.34,
+  "repeat_p": 0.0191,
+  "top10pct_sellers_share_of_late_orders": 73.8,
+  "top10pct_sellers_share_of_orders": 63.3,
+  "pct_sellers_with_any_late_order": 43.3,
+  "watchlist_sellers": 37,
+  "watchlist_pct_of_sellers": 1.3,
+  "watchlist_share_of_late_orders": 7.9,
+  "watchlist_share_of_orders": 2.8,
+  "watchlist_late_rate": 18.7
+}

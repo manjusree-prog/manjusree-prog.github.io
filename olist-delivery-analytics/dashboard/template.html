@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Olist Delivery Performance Dashboard</title>
+<meta name="description" content="Delivery performance, customer satisfaction and data quality for 96,000 Olist e-commerce orders (2017-2018).">
+<style>
+:root{--bg:#F5F7FA;--card:#FFFFFF;--ink:#1B2430;--muted:#5C6675;--line:#E3E7ED;--blue:#1F5FA8;--blue-soft:#D6E2F0;--red:#C8423B;--amber:#E3A33B;--grey:#8A8F98;--green:#2E8B57}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161D;--card:#1A212B;--ink:#E7ECF2;--muted:#9AA4B2;--line:#2A3340;--blue:#5B9BE0;--blue-soft:#2A3D55;--red:#E06A62;--amber:#E8B55A;--grey:#7D8794;--green:#4FB37E}}
+:root[data-theme="dark"]{--bg:#11161D;--card:#1A212B;--ink:#E7ECF2;--muted:#9AA4B2;--line:#2A3340;--blue:#5B9BE0;--blue-soft:#2A3D55;--red:#E06A62;--amber:#E8B55A;--grey:#7D8794;--green:#4FB37E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 48px}
+header h1{font-size:1.6rem;margin:0 0 4px}
+header p{margin:0;color:var(--muted)}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border:1px solid var(--line);border-radius:99px;color:var(--muted);margin-right:6px;margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:22px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .v{font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:.82rem}
+.kpi.alert .v{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.card h2{font-size:1rem;margin:0 0 2px}
+.card .sub{color:var(--muted);font-size:.85rem;margin:0 0 10px}
+.wide{grid-column:1/-1}
+.chart{position:relative;height:280px}
+.chart.tall{height:400px}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.controls button{font:inherit;font-size:.82rem;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.controls button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+.bad{color:var(--red);font-weight:600}
+.flow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+.flow div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.85rem}
+.flow b{display:block;font-size:1.1rem}
+.flow span{color:var(--muted)}
+ol.recs{margin:0;padding-left:20px}
+ol.recs li{margin:6px 0}
+.svgbox{position:absolute;inset:0}
+.svgbox svg{width:100%;height:100%;display:block;overflow:visible}
+.svgbox text{fill:var(--muted);font-size:11px}
+.svgbox .lbl{fill:var(--ink);font-size:11px;font-weight:600}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);font-size:.8rem;padding:6px 9px;border-radius:6px;max-width:260px;opacity:0;transition:opacity .1s;z-index:9;line-height:1.4}
+footer{color:var(--muted);font-size:.8rem;margin-top:24px}
+footer a{color:var(--blue)}
+@media (max-width:820px){.grid{grid-template-columns:1fr}.chart.tall{height:460px}}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="wrap">
+<header>
+  <h1>Late Deliveries Cost Olist Its Best Reviews</h1>
+  <p>Delivery performance, customer satisfaction and data quality for Olist, a Brazilian e-commerce marketplace. Delivered orders, Jan 2017 to Aug 2018.</p>
+  <span class="tag">SQL (SQLite)</span><span class="tag">Python</span><span class="tag">Data quality checks</span><span class="tag">Teja Manjusree Koduru</span>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<section class="grid">
+  <div class="card wide">
+    <h2>Monthly volume and delivery performance</h2>
+    <p class="sub">Late rate jumped in Nov 2017 (Black Friday) and again in Feb-Mar 2018, while order volume stayed flat.</p>
+    <div class="controls" id="trendCtl">
+      <button data-k="late_rate_pct" class="on">Late rate %</button>
+      <button data-k="avg_delivery_days">Avg delivery days</button>
+      <button data-k="avg_review">Avg review</button>
+    </div>
+    <div class="chart"><div id="trend" class="svgbox"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Reviews collapse once an order is late</h2>
+    <p class="sub">Share of 1-2 star reviews by delivery date vs. the promised date.</p>
+    <div class="chart"><div id="reviews" class="svgbox"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Where late orders lose time</h2>
+    <p class="sub">Average days per stage. Carrier transit is 3.5x longer for late orders.</p>
+    <div class="chart"><div id="stages" class="svgbox"></div></div>
+  </div>
+
+  <div class="card wide">
+    <h2>Late rate by customer state</h2>
+    <p class="sub">States with 500+ orders. Northeast states and Rio de Janeiro are the problem lanes; RJ matters most because of its volume.</p>
+    <div class="controls" id="stateCtl">
+      <button data-k="late_rate_pct" class="on">Sort by late rate</button>
+      <button data-k="late_orders">Sort by late orders</button>
+      <button data-k="orders">Sort by orders</button>
+    </div>
+    <div class="chart tall"><div id="states" class="svgbox"></div></div>
+  </div>
+
+  <div class="card wide">
+    <h2>Top 15 categories by revenue</h2>
+    <p class="sub">Click a column to sort. Office furniture has the slowest delivery and the lowest rating.</p>
+    <div class="tablewrap"><table id="cats"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Data quality pipeline</h2>
+    <p class="sub">Every delivered order is checked before analysis. Failing rows are quarantined with a reason, not deleted.</p>
+    <div class="flow" id="flow"></div>
+    <div class="tablewrap"><table id="dq"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>What I would do</h2>
+    <p class="sub">Recommendations based on the findings.</p>
+    <ol class="recs" id="recs"></ol>
+  </div>
+</section>
+
+<footer>
+  Data: <a href="https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce">Brazilian E-Commerce Public Dataset by Olist</a> (CC BY-NC-SA 4.0).
+  Code and SQL: <a href="https://github.com/manjusree-prog/manjusree-prog.github.io/tree/main/olist-delivery-analytics">github.com/manjusree-prog/olist-delivery-analytics</a>.
+  Orders still in transit at the data cut-off are not included, so late rates in the last months are slightly understated.
+</footer>
+</div>
+
+<script>
+const D = /*DATA*/null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d = 0) => Number(v).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const C = () => ({blue: css('--blue'), soft: css('--blue-soft'), red: css('--red'), amber: css('--amber'),
+                  grey: css('--grey'), ink: css('--ink'), muted: css('--muted'), line: css('--line')});
+
+function kpis() {
+  const k = D.kpi, s = D.summary;
+  const items = [
+    [fmt(k.delivered_orders), 'Delivered orders'],
+    ['R$ ' + fmt(k.revenue_brl / 1e6, 1) + 'M', 'Revenue (items + freight)'],
+    [fmt(k.avg_delivery_days, 1) + ' days', 'Avg delivery time (promised ' + fmt(k.avg_promised_days, 0) + ')'],
+    [fmt(k.late_rate_pct, 1) + '%', 'Delivered after promised date', true],
+    [fmt(k.avg_review, 2) + ' / 5', 'Avg review score'],
+    [fmt(s.negative_review_pct_late, 0) + '% vs ' + fmt(s.negative_review_pct_ontime, 0) + '%', '1-2 star reviews: late vs on time', true],
+  ];
+  document.getElementById('kpis').innerHTML = items.map(([v, l, a]) =>
+    `<div class="kpi${a ? ' alert' : ''}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+}
+
+
+const NS = 'http://www.w3.org/2000/svg';
+const tip = document.getElementById('tip');
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = 1;
+  const x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8); tip.style.left = x + 'px'; tip.style.top = (e.clientY + 12) + 'px'; }
+function hideTip() { tip.style.opacity = 0; }
+function el(tag, attrs, parent, text) { const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]); if (text !== undefined) n.textContent = text; if (parent) parent.appendChild(n); return n; }
+function hover(node, html) { node.style.cursor = 'pointer';
+  node.addEventListener('mousemove', e => showTip(e, html)); node.addEventListener('mouseleave', hideTip);
+  node.addEventListener('touchstart', e => showTip(e.touches[0], html), {passive: true}); }
+function svgFor(id) { const box = document.getElementById(id); box.innerHTML = '';
+  const w = box.clientWidth, h = box.clientHeight; const svg = el('svg', {viewBox: `0 0 ${w} ${h}`}, box); return [svg, w, h]; }
+function nice(max) { const p = Math.pow(10, Math.floor(Math.log10(max))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= max) return m * p; return 10 * p; }
+function legend(id, items) { const box = document.getElementById(id).parentElement;
+  let lg = box.previousElementSibling; if (!lg || !lg.classList.contains('legend')) { lg = document.createElement('div'); lg.className = 'legend'; box.before(lg); }
+  lg.innerHTML = items.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join(''); }
+
+let trendKey = 'late_rate_pct', stateKey = 'late_rate_pct';
+const trendLabel = {late_rate_pct: 'Late rate %', avg_delivery_days: 'Avg delivery days', avg_review: 'Avg review'};
+
+function drawTrend(c) {
+  const m = D.monthly, [svg, w, h] = svgFor('trend'), L = 46, R = 46, T = 10, B = 34;
+  const n = m.purchase_month.length, bw = (w - L - R) / n, ymax = nice(Math.max(...m.orders));
+  const vals = m[trendKey], lo = trendKey === 'avg_review' ? 3.5 : 0, hi = trendKey === 'avg_review' ? 4.5 : nice(Math.max(...vals));
+  const y = v => T + (h - T - B) * (1 - v / ymax), y2 = v => T + (h - T - B) * (1 - (v - lo) / (hi - lo));
+  for (let i = 0; i <= 4; i++) { const v = ymax * i / 4, yy = y(v);
+    el('line', {x1: L, x2: w - R, y1: yy, y2: yy, stroke: c.line}, svg);
+    el('text', {x: L - 6, y: yy + 4, 'text-anchor': 'end'}, svg, fmt(v));
+    el('text', {x: w - R + 6, y: y2(lo + (hi - lo) * i / 4) + 4}, svg, fmt(lo + (hi - lo) * i / 4, trendKey === 'avg_review' ? 2 : 0)); }
+  m.purchase_month.forEach((mo, i) => {
+    const x = L + i * bw, r = el('rect', {x: x + bw * .15, y: y(m.orders[i]), width: bw * .7, height: h - B - y(m.orders[i]), fill: c.soft, rx: 2}, svg);
+    hover(r, `<b>${mo}</b><br>Orders: ${fmt(m.orders[i])}<br>Revenue: R$ ${fmt(m.revenue_brl[i])}<br>Late rate: ${m.late_rate_pct[i]}%<br>Avg delivery: ${m.avg_delivery_days[i]} days<br>Avg review: ${m.avg_review[i]}`);
+    const step = w > 700 ? 1 : w > 480 ? 2 : 3;
+    if (i % step === 0) el('text', {x: x + bw / 2, y: h - B + 16, 'text-anchor': 'middle'}, svg, mo.slice(2)); });
+  const pts = vals.map((v, i) => [L + i * bw + bw / 2, y2(v)]);
+  el('polyline', {points: pts.map(p => p.join(',')).join(' '), fill: 'none', stroke: c.red, 'stroke-width': 2.2}, svg);
+  pts.forEach(([px, py], i) => hover(el('circle', {cx: px, cy: py, r: 4, fill: c.red}, svg),
+    `<b>${m.purchase_month[i]}</b><br>${trendLabel[trendKey]}: ${vals[i]}`));
+  legend('trend', [[c.soft, 'Delivered orders (left axis)'], [c.red, trendLabel[trendKey] + ' (right axis)']]);
+}
+
+function drawBars(id, labels, values, colors, tips, opt = {}) {
+  const [svg, w, h] = svgFor(id), c = C();
+  if (opt.horizontal) {
+    const L = opt.left || 60, R = 50, T = 4, B = 22, n = labels.length, bh = (h - T - B) / n;
+    const xmax = opt.max || nice(Math.max(...values)), x = v => L + (w - L - R) * v / xmax;
+    for (let i = 0; i <= 4; i++) { const v = xmax * i / 4; el('line', {x1: x(v), x2: x(v), y1: T, y2: h - B, stroke: c.line}, svg);
+      el('text', {x: x(v), y: h - 6, 'text-anchor': 'middle'}, svg, fmt(v)); }
+    labels.forEach((lb, i) => { const yy = T + i * bh;
+      el('text', {x: L - 6, y: yy + bh / 2 + 4, 'text-anchor': 'end', class: 'lbl'}, svg, lb);
+      hover(el('rect', {x: L, y: yy + bh * .15, width: Math.max(1, x(values[i]) - L), height: bh * .7, fill: colors[i], rx: 2}, svg), tips[i]);
+      el('text', {x: x(values[i]) + 4, y: yy + bh / 2 + 4}, svg, opt.suffix ? values[i] + opt.suffix : fmt(values[i])); });
+  } else {
+    const L = 34, R = 4, T = 18, B = 44, n = labels.length, bw = (w - L - R) / n;
+    const ymax = opt.max || nice(Math.max(...values)), y = v => T + (h - T - B) * (1 - v / ymax);
+    for (let i = 0; i <= 4; i++) { const v = ymax * i / 4; el('line', {x1: L, x2: w - R, y1: y(v), y2: y(v), stroke: c.line}, svg);
+      el('text', {x: L - 6, y: y(v) + 4, 'text-anchor': 'end'}, svg, fmt(v)); }
+    labels.forEach((lb, i) => { const x = L + i * bw;
+      hover(el('rect', {x: x + bw * .18, y: y(values[i]), width: bw * .64, height: h - B - y(values[i]), fill: colors[i], rx: 2}, svg), tips[i]);
+      el('text', {x: x + bw / 2, y: y(values[i]) - 5, 'text-anchor': 'middle', class: 'lbl'}, svg, values[i] + (opt.suffix || ''));
+      const words = lb.split(' '), k = bw < 70 ? 3 : 2, per = Math.ceil(words.length / k), lines = [];
+      for (let j = 0; j < words.length; j += per) lines.push(words.slice(j, j + per).join(' '));
+      lines.forEach((t, j) => el('text', {x: x + bw / 2, y: h - B + 13 + j * 11, 'text-anchor': 'middle', style: bw < 70 ? 'font-size:9.5px' : ''}, svg, t)); });
+  }
+}
+
+function drawStages(c) {
+  const st = D.stages, [svg, w, h] = svgFor('stages'), L = 104, R = 16, T = 8, B = 34;
+  const rows = [['On time / early', st.outcome.indexOf('on time / early')], ['Late', st.outcome.indexOf('late')]];
+  const parts = [['approval_days', c.grey, 'Approval'], ['seller_handling_days', c.amber, 'Seller handling'], ['carrier_transit_days', c.blue, 'Carrier transit']];
+  const xmax = Math.ceil(Math.max(...rows.map(([, i]) => st.total_delivery_days[i]), st.promised_days[0]) / 10) * 10, x = v => L + (w - L - R) * v / xmax;
+  for (let i = 0; i <= 4; i++) { const v = xmax * i / 4; el('line', {x1: x(v), x2: x(v), y1: T, y2: h - B, stroke: c.line}, svg);
+    el('text', {x: x(v), y: h - B + 14, 'text-anchor': 'middle'}, svg, fmt(v)); }
+  el('text', {x: (L + w - R) / 2, y: h - 4, 'text-anchor': 'middle'}, svg, 'Average days');
+  const bh = (h - T - B) / 2;
+  rows.forEach(([lb, i], r) => { let acc = 0; const yy = T + r * bh;
+    el('text', {x: L - 8, y: yy + bh / 2 + 4, 'text-anchor': 'end', class: 'lbl'}, svg, lb);
+    parts.forEach(([k, col, name]) => { const v = st[k][i];
+      hover(el('rect', {x: x(acc), y: yy + bh * .2, width: x(acc + v) - x(acc), height: bh * .6, fill: col}, svg),
+        `<b>${lb}</b><br>${name}: ${v} days<br>Total: ${st.total_delivery_days[i]} days<br>Promised: ${st.promised_days[i]} days`);
+      if (x(acc + v) - x(acc) > 30) el('text', {x: (x(acc) + x(acc + v)) / 2, y: yy + bh / 2 + 4, 'text-anchor': 'middle', style: 'fill:#fff;font-weight:700'}, svg, v);
+      acc += v; }); });
+  const pm = (st.promised_days[0] + st.promised_days[1]) / 2;
+  el('line', {x1: x(pm), x2: x(pm), y1: T, y2: h - B, stroke: c.red, 'stroke-dasharray': '5 4', 'stroke-width': 1.6}, svg);
+  el('text', {x: x(pm) + 4, y: T + 10, style: `fill:${c.red}`}, svg, `promised ≈ ${Math.round(pm)} days`);
+  legend('stages', parts.map(([, col, n]) => [col, n]));
+}
+
+function draw() {
+  const c = C();
+  drawTrend(c);
+  const r = D.reviews;
+  drawBars('reviews', r.labels, r.negative_review_pct, r.labels.map((_, i) => i < 3 ? c.blue : c.red),
+    r.labels.map((lb, i) => `<b>${lb}</b><br>1-2 star reviews: ${r.negative_review_pct[i]}%<br>5-star: ${r.five_star_pct[i]}%<br>Avg review: ${r.avg_review[i]}<br>Orders: ${fmt(r.orders[i])}`),
+    {max: 100, suffix: '%'});
+  drawStages(c);
+  const s = D.states, idx = s.customer_state.map((_, i) => i).sort((a, b) => s[stateKey][b] - s[stateKey][a]);
+  drawBars('states', idx.map(i => s.customer_state[i]), idx.map(i => s[stateKey][i]),
+    idx.map(i => s.late_rate_pct[i] >= 10 ? c.red : c.blue),
+    idx.map(i => `<b>${s.customer_state[i]}</b><br>Late rate: ${s.late_rate_pct[i]}%<br>Late orders: ${fmt(s.late_orders[i])}<br>Orders: ${fmt(s.orders[i])}<br>Avg delivery: ${s.avg_delivery_days[i]} days (promised ${s.avg_promised_days[i]})<br>Avg review: ${s.avg_review[i]}`),
+    {horizontal: true, left: 40, suffix: stateKey === 'late_rate_pct' ? '%' : ''});
+  legend('states', [[c.red, 'Late rate 10% or higher'], [c.blue, 'Below 10%']]);
+}
+
+function table(id, cols, rows, sortable) {
+  const el = document.getElementById(id);
+  let key = null, dir = -1;
+  const render = () => {
+    const rs = key === null ? rows : [...rows].sort((a, b) => (a[key] > b[key] ? 1 : -1) * dir);
+    el.innerHTML = '<thead><tr>' + cols.map((c, i) => `<th data-i="${i}">${c[0]}</th>`).join('') + '</tr></thead><tbody>' +
+      rs.map(r => '<tr>' + cols.map((c, i) => `<td${c[2] && c[2](r[i]) ? ' class="bad"' : ''}>${c[1] ? c[1](r[i]) : r[i]}</td>`).join('') + '</tr>').join('') + '</tbody>';
+    if (sortable) el.querySelectorAll('th').forEach(th => th.onclick = () => {
+      const i = +th.dataset.i; dir = key === i ? -dir : -1; key = i; render(); });
+  };
+  render();
+}
+
+function static_() {
+  const k = D.categories;
+  table('cats', [['Category'], ['Orders', v => fmt(v)], ['Revenue (R$)', v => fmt(v)],
+    ['Late %', v => v.toFixed(1), v => v >= 7.5], ['Avg delivery days', v => v.toFixed(1), v => v >= 15],
+    ['Avg review', v => v.toFixed(2), v => v < 3.9]],
+    k.category.map((c, i) => [c.replace(/_/g, ' '), k.orders[i], k.revenue_brl[i], k.late_rate_pct[i], k.avg_delivery_days[i], k.avg_review[i]]), true);
+
+  const p = D.pipeline;
+  document.getElementById('flow').innerHTML =
+    `<div><b>${fmt(p.all_orders)}</b><span>all orders</span></div>→` +
+    `<div><b>${fmt(p.delivered_orders)}</b><span>delivered</span></div>→` +
+    `<div><b>${fmt(p.quarantined)}</b><span>quarantined</span></div>→` +
+    `<div><b>${fmt(p.clean_delivered_orders)}</b><span>clean for analysis</span></div>`;
+  const dq = D.dq;
+  table('dq', [['Check'], ['Failing rows', v => fmt(v), v => v > 0]],
+    dq.check_name.map((c, i) => [c, dq.failing_rows[i]]), false);
+
+  const s = D.summary;
+  document.getElementById('recs').innerHTML = [
+    `<b>Fix the carrier lanes, not just the sellers.</b> Late orders spend ${pick2('carrier_transit_days')} days in transit vs ${pick2('carrier_transit_days', 0)} for on-time ones. Review carrier performance for RJ and the Northeast first.`,
+    `<b>Set promised dates per state.</b> A single generous promise (about 24 days) still fails in MA, CE and BA. Use each lane's real delivery-time distribution instead.`,
+    `<b>Plan peak capacity.</b> The late rate tripled in Nov 2017 and reached 19% in Mar 2018. Add carrier capacity before Black Friday and monitor the 3-month rolling late rate weekly.`,
+    `<b>Seller watch-list.</b> ${s.watchlist_sellers} sellers (${s.watchlist_pct_of_sellers}% of sellers) run at a ${s.watchlist_late_rate}% late rate, about 3x the average. Flag handling time above 5 days.`,
+    `<b>Proactive customer contact.</b> 1-2 star reviews jump from ${s.negative_review_pct_ontime}% to ${s.negative_review_pct_late}% when an order is late. A delay message and voucher could protect ratings.`,
+  ].map(x => `<li>${x}</li>`).join('');
+}
+function pick2(k, late = 1) { const st = D.stages; const i = st.outcome.indexOf(late ? 'late' : 'on time / early'); return st[k][i]; }
+
+function controls(id, set) {
+  document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+    document.querySelectorAll(`#${id} button`).forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); set(b.dataset.k); draw(); });
+}
+
+kpis(); static_(); draw();
+controls('trendCtl', k => trendKey = k);
+controls('stateCtl', k => stateKey = k);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
+</script>
+</body>
+</html>

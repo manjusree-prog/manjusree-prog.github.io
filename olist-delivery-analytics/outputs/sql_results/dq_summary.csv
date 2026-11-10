@@ -1,0 +1,12 @@
+check_name,failing_rows
+orders: duplicate order_id,0
+order_items: item without matching order,0
+order_items: price <= 0,0
+orders: payment total differs from items + freight by > 1 BRL,249
+order_reviews: orders with more than one review,555
+products: missing category,610
+delivered orders: delivered status but no delivery date,8
+delivered orders: delivered to customer before carrier handover,23
+delivered orders: handed to carrier before purchase,165
+delivered orders: missing approval timestamp,14
+delivered orders: missing carrier handover timestamp,1
